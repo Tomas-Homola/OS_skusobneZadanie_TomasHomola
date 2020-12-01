@@ -1,0 +1,48 @@
+#!/bin/bash
+
+DATE=11/23/2020
+CODE=LZIB
+
+if [ "$#" == 1 ] # ak je zadany iba 1 argument
+then
+    	CODE="$1"
+	DATE=$(echo $(date -d yesterday +"%d-%m-%Y")) # vcerajsi datum
+	
+	DD=$(echo "$DATE" | cut -c1-2)
+	#echo den "$DD"
+        
+	MM=$(echo "$DATE" | cut -c4-5)
+	#echo mesiac "$MM"
+        
+	YYYY=$(echo "$DATE" | cut -c7-10)
+	#echo rok "$YYYY"
+
+	START=$(echo $(date -d "$MM"/"$DD"/"$YYYY" +'%s'))
+	
+	#echo start "$START"
+	END=$(echo "$START" + 24*60*60 | bc)
+	#echo end  "$END"
+	
+	curl -s 'https://aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=csv&stationString='"$CODE"'&startTime='"$START"'&endTime='"$END"'' | grep "$CODE"
+
+elif [ "$#" == 2 ]
+then
+	DATE="$1"
+	CODE="$2"
+
+	# rozstrihanie datumu na den, mesiac a rok -> staci ten zadany datum iba rozkrajat
+	DD=$(echo "$DATE" | cut -c1-2)
+	MM=$(echo "$DATE" | cut -c4-5)
+	YYYY=$(echo "$DATE" | cut -c7-10)
+
+	# vypocet zaciatocnej a koncovej hodnoty v sekundach pre datum
+	START=$(echo $(date -d "$MM"/"$DD"/"$YYYY" +'%s'))
+	END=$(echo "$START" + 24*60*60 | bc)
+	
+	# mozno poplnit podmienku, ze ak je zadany datum starsi ako 15 dni, tak vypisat, ze sa nenasli ziadne data
+
+	curl -s 'https://aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=csv&stationString='"$CODE"'&startTime='"$START"'&endTime='"$END"'' | grep "$CODE"
+else
+	echo prilis vela argumentov
+
+fi
